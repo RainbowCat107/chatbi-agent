@@ -1,3 +1,36 @@
+# 🚀 ChatBI 企业级数据分析智能体 (Enterprise ChatBI Agent)
+
+基于大模型（Qwen-Max）与 ReAct 架构构建的“文本到 SQL（NL2SQL）”智能数据探索平台。本项目不仅实现了基础的自然语言查询，更着重解决了大模型在真实企业落地中面临的**业务口径幻觉**与**跨方言语法报错**两大核心痛点。
+
+## ✨ 核心亮点 (Core Features)
+
+* **🛡️ 业务边界硬控 (动态数据字典与拒答机制)**
+  摒弃了传统大模型“不懂装懂、瞎编字段”的毛病。通过 Prompt 注入企业级数据字典，严格规范 GMV（排除退款订单）、有效用户（排除软删除注销用户）等核心财务指标口径。当遇到缺失维度查询时，触发拒答兜底机制，确保数据分析的 100% 严谨性。
+* **🔄 自治愈容错闭环 (Self-Correction)**
+  构建了基于 Traceback 的异常捕获与反馈链路。当大模型写出不兼容 SQLite 的方言（如 MySQL 的 `MONTH()` 函数）或遭遇底层库报错时，Agent 能自主拦截报错堆栈，并将其反喂给大模型进行 SQL 语义重构，极大提升了系统的鲁棒性。
+* **🧠 连贯性记忆引擎 (Contextual Memory)**
+  采用状态机 (Streamlit Session State) 持久化上下文历史，突破了大模型 API 的无状态限制。完美支持复杂的指代消解（如：“那只看3C数码的呢？”）与条件动态叠加的多轮数据探索。
+* **⚡ 极简轻量化部署 (Full-stack Integration)**
+  采用 FastAPI + Streamlit 前后端解耦思路（当前 Demo 融合演示），底层挂载 SQLite 轻量级数据库，无需复杂的环境配置即可实现极速本地启动。
+
+## 📁 目录结构 (Project Structure)
+
+```text
+chatbi-agent/
+├── app/                  # 后端核心逻辑层
+│   ├── agents/           # 智能体大脑 (nl2sql_agent.py，包含自纠错循环)
+│   ├── services/         # LLM 服务层 (llm_service.py，包含提示词与数据字典)
+│   └── tools/            # 工具类 (sql_tool.py，包含 SQL 安全校验拦截)
+├── data/db/              # 本地数据库目录 (存放 chatbi.db)
+├── frontend/             # 前端展示层
+│   └── streamlit_app.py  # 交互式 Web UI
+├── scripts/              # 脚本库
+│   └── init_db.py        # 数据库初始化与企业级脏数据 Mock 脚本
+├── .env.example          # 环境变量配置模板 (请勿上传真实 .env)
+├── .gitignore            # Git 忽略配置
+├── requirements.txt      # Python 依赖清单
+└── README.md             # 项目说明文档
+
 ## 🛠️ 技术栈 (Tech Stack)
 
 * **编程语言:** Python 3.8+
