@@ -61,6 +61,7 @@ pip install -r requirements.txt
 
 本项目依赖阿里云的百炼大模型服务。请复制环境变量模板并填入你的真实秘钥：
 
+```text
 # 在 .env 文件中填入
 DASHSCOPE_API_KEY=sk-xxxxxxxxxxxxxxxxxxxxx
 ```
@@ -84,7 +85,7 @@ streamlit run frontend/streamlit_app.py
 
 终端启动成功后，会自动在浏览器中打开 `http://localhost:8501`。你现在可以开始向智能体进行提问了！
 
-## 💡 精彩测试用例体验 (Showcases)
+## 💡 测试用例体验 (Showcases)
 
 强烈建议在页面中输入以下三个问题，体验 Agent 的核心能力：
 
