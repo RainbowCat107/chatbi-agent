@@ -30,6 +30,7 @@ chatbi-agent/
 ├── .gitignore            # Git 忽略配置
 ├── requirements.txt      # Python 依赖清单
 └── README.md             # 项目说明文档
+```
 
 ## 🛠️ 技术栈 (Tech Stack)
 
