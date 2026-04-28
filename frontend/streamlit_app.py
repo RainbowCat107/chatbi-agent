@@ -18,9 +18,11 @@ if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 
 default_questions = [
-    "请帮我分析销量最高的前五个品类",
-    "请分析华东地区近三个月销售趋势",
-    "请统计用户注册趋势",
+    "请按品类统计GMV最高的前五名",
+    "请按月份统计近三个月销售额趋势",
+    "请分析华东地区各城市GMV",
+    "请统计各渠道GMV排名",
+    "请计算本月利润",
 ]
 
 selected_question = st.selectbox("选择一个示例问题", [""] + default_questions)
@@ -43,6 +45,9 @@ if st.button("开始分析"):
             st.subheader("自动分析结论")
             st.write(resp["summary"])
 
+            with st.expander("Agent 规划与 Schema Linking"):
+                st.json(resp.get("agent_plan", {}))
+
             result = resp.get("result", {})
             rows = result.get("rows", [])
             if rows:
@@ -62,7 +67,7 @@ if st.button("开始分析"):
 
             attempts = resp.get("attempts", [])
             if attempts:
-                st.subheader("SQL 执行与修正过程")
+                st.subheader("SQL 审计、执行与修正过程")
                 st.json(attempts)
             with st.expander("查看完整返回结果"):
                 st.json(resp)

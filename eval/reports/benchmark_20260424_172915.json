@@ -1,0 +1,494 @@
+{
+  "summary": {
+    "total": 12,
+    "pass_rate": 0.9167,
+    "execution_success_rate": 1.0,
+    "audit_success_rate": 1.0,
+    "refusal_accuracy": 1.0,
+    "avg_keyword_score": 0.9583,
+    "avg_latency_sec": 4.19,
+    "avg_attempt_count": 1.0
+  },
+  "results": [
+    {
+      "id": "gmv_by_category_top5",
+      "question": "请按品类统计GMV最高的前五名",
+      "passed": true,
+      "latency_sec": 6.704,
+      "sql": "SELECT \n  t2.cat_name, \n  SUM(t1.pay_amount) AS gmv\nFROM \n  dwd_trade_order t1\nJOIN \n  dim_sku_info t2 ON t1.sku_id = t2.sku_id\nWHERE \n  t1.order_status IN (20, 30) AND \n  t2.is_on_sale = 1\nGROUP BY \n  t2.cat_name\nORDER BY \n  gmv DESC\nLIMIT 5;",
+      "summary": "该问题属于类别对比分析。共返回 4 条记录。cat_name 为 3C数码 的 gmv 最高，数值为 11607929.529999988；cat_name 为 零食生鲜 的 gmv 最低，数值为 261411.21000000025。",
+      "keyword_score": 1.0,
+      "missing_keywords": [],
+      "forbidden_hits": [],
+      "execution_ok": true,
+      "audit_ok": true,
+      "refusal_ok": true,
+      "response_ok": true,
+      "missing_response_substrings": [],
+      "chart_ok": true,
+      "chart_type": "bar",
+      "attempt_count": 1,
+      "agent_plan": {
+        "intent": "ranking",
+        "linked_terms": [
+          "sales",
+          "sku"
+        ],
+        "linked_fields": [
+          "dim_sku_info.cat_name",
+          "dim_sku_info.is_on_sale",
+          "dim_sku_info.sku_id",
+          "dwd_trade_order.create_time",
+          "dwd_trade_order.order_status",
+          "dwd_trade_order.pay_amount"
+        ],
+        "required_rules": [
+          "on_sale_sku_filter",
+          "valid_order_filter"
+        ],
+        "value_hints": [],
+        "should_refuse": false,
+        "refusal_reason": null,
+        "refusal_sql": null
+      },
+      "errors": null
+    },
+    {
+      "id": "sales_trend_monthly",
+      "question": "请按月份统计销售额趋势",
+      "passed": false,
+      "latency_sec": 5.466,
+      "sql": "SELECT \n  strftime('%Y-%m', create_time) AS month, \n  SUM(pay_amount) AS sales_amount\nFROM \n  dwd_trade_order\nWHERE \n  order_status IN (20, 30)\nGROUP BY \n  month\nORDER BY \n  month;",
+      "summary": "该问题属于时间趋势分析。共返回 6 条记录。sales_amount 在 2024-01 达到最高值 3157940.319999998，在 2024-06 达到最低值 2700755.2799999993。",
+      "keyword_score": 0.5,
+      "missing_keywords": [],
+      "forbidden_hits": [
+        "sales_amount"
+      ],
+      "execution_ok": true,
+      "audit_ok": true,
+      "refusal_ok": true,
+      "response_ok": true,
+      "missing_response_substrings": [],
+      "chart_ok": true,
+      "chart_type": "line",
+      "attempt_count": 1,
+      "agent_plan": {
+        "intent": "trend",
+        "linked_terms": [
+          "sales"
+        ],
+        "linked_fields": [
+          "dwd_trade_order.create_time",
+          "dwd_trade_order.order_status",
+          "dwd_trade_order.pay_amount"
+        ],
+        "required_rules": [
+          "valid_order_filter"
+        ],
+        "value_hints": [],
+        "should_refuse": false,
+        "refusal_reason": null,
+        "refusal_sql": null
+      },
+      "errors": null
+    },
+    {
+      "id": "refund_amount",
+      "question": "请统计退款金额最高的商品前十名",
+      "passed": true,
+      "latency_sec": 4.95,
+      "sql": "SELECT \n  t2.sku_id, \n  t2.spu_name, \n  SUM(t1.pay_amount) AS refund_amount\nFROM \n  dwd_trade_order t1\nJOIN \n  dim_sku_info t2 ON t1.sku_id = t2.sku_id\nWHERE \n  t1.order_status = 40 AND t2.is_on_sale = 1\nGROUP BY \n  t1.sku_id, t2.spu_name\nORDER BY \n  refund_amount DESC\nLIMIT 10;",
+      "summary": "该问题属于类别对比分析。共返回 9 条记录。sku_id 为 2002 的 spu_name 最高，数值为 雅诗兰黛小棕瓶；sku_id 为 1002 的 spu_name 最低，数值为 MacBook Air。",
+      "keyword_score": 1.0,
+      "missing_keywords": [],
+      "forbidden_hits": [],
+      "execution_ok": true,
+      "audit_ok": true,
+      "refusal_ok": true,
+      "response_ok": true,
+      "missing_response_substrings": [],
+      "chart_ok": true,
+      "chart_type": "bar",
+      "attempt_count": 1,
+      "agent_plan": {
+        "intent": "ranking",
+        "linked_terms": [
+          "refund",
+          "sku"
+        ],
+        "linked_fields": [
+          "dim_sku_info.cat_name",
+          "dim_sku_info.is_on_sale",
+          "dim_sku_info.sku_id",
+          "dwd_trade_order.order_status",
+          "dwd_trade_order.pay_amount"
+        ],
+        "required_rules": [
+          "on_sale_sku_filter",
+          "refund_order_filter"
+        ],
+        "value_hints": [],
+        "should_refuse": false,
+        "refusal_reason": null,
+        "refusal_sql": null
+      },
+      "errors": null
+    },
+    {
+      "id": "active_user_register_trend",
+      "question": "请统计有效用户的注册趋势",
+      "passed": true,
+      "latency_sec": 3.332,
+      "sql": "SELECT \n  strftime('%Y-%m', reg_time) AS reg_month, \n  COUNT(uid) AS user_count\nFROM \n  dim_user_info\nWHERE \n  is_deleted = 0\nGROUP BY \n  reg_month\nORDER BY \n  reg_month;",
+      "summary": "该问题属于类别对比分析。共返回 12 条记录。reg_month 为 2023-10 的 user_count 最高，数值为 53；reg_month 为 2023-01 的 user_count 最低，数值为 32。",
+      "keyword_score": 1.0,
+      "missing_keywords": [],
+      "forbidden_hits": [],
+      "execution_ok": true,
+      "audit_ok": true,
+      "refusal_ok": true,
+      "response_ok": true,
+      "missing_response_substrings": [],
+      "chart_ok": true,
+      "chart_type": "bar",
+      "attempt_count": 1,
+      "agent_plan": {
+        "intent": "trend",
+        "linked_terms": [
+          "user"
+        ],
+        "linked_fields": [
+          "dim_user_info.is_deleted",
+          "dim_user_info.reg_time",
+          "dim_user_info.uid"
+        ],
+        "required_rules": [
+          "active_user_filter"
+        ],
+        "value_hints": [],
+        "should_refuse": false,
+        "refusal_reason": null,
+        "refusal_sql": null
+      },
+      "errors": null
+    },
+    {
+      "id": "vip_distribution",
+      "question": "请统计不同会员等级的有效用户数",
+      "passed": true,
+      "latency_sec": 3.152,
+      "sql": "SELECT vip_level, COUNT(uid) AS active_user_count\nFROM dim_user_info\nWHERE is_deleted = 0\nGROUP BY vip_level;",
+      "summary": "该问题属于类别对比分析。共返回 4 条记录。vip_level 为 0 的 active_user_count 最高，数值为 284；vip_level 为 3 的 active_user_count 最低，数值为 28。",
+      "keyword_score": 1.0,
+      "missing_keywords": [],
+      "forbidden_hits": [],
+      "execution_ok": true,
+      "audit_ok": true,
+      "refusal_ok": true,
+      "response_ok": true,
+      "missing_response_substrings": [],
+      "chart_ok": true,
+      "chart_type": "bar",
+      "attempt_count": 1,
+      "agent_plan": {
+        "intent": "metric",
+        "linked_terms": [
+          "user"
+        ],
+        "linked_fields": [
+          "dim_user_info.is_deleted",
+          "dim_user_info.reg_time",
+          "dim_user_info.uid"
+        ],
+        "required_rules": [
+          "active_user_filter"
+        ],
+        "value_hints": [],
+        "should_refuse": false,
+        "refusal_reason": null,
+        "refusal_sql": null
+      },
+      "errors": null
+    },
+    {
+      "id": "region_gmv",
+      "question": "请分析华东地区各城市GMV",
+      "passed": true,
+      "latency_sec": 5.867,
+      "sql": "SELECT \n  r.city_name,\n  SUM(o.pay_amount) AS GMV\nFROM \n  dwd_trade_order o\nJOIN \n  dim_region_info r ON o.region_id = r.region_id\nWHERE \n  o.order_status IN (20, 30)\n  AND r.region_name = '华东'\nGROUP BY \n  r.city_name;",
+      "summary": "该问题属于类别对比分析。共返回 3 条记录。city_name 为 上海 的 GMV 最高，数值为 2770222.809999996；city_name 为 杭州 的 GMV 最低，数值为 2311778.2599999965。",
+      "keyword_score": 1.0,
+      "missing_keywords": [],
+      "forbidden_hits": [],
+      "execution_ok": true,
+      "audit_ok": true,
+      "refusal_ok": true,
+      "response_ok": true,
+      "missing_response_substrings": [],
+      "chart_ok": true,
+      "chart_type": "bar",
+      "attempt_count": 1,
+      "agent_plan": {
+        "intent": "ad_hoc_query",
+        "linked_terms": [
+          "sales",
+          "region"
+        ],
+        "linked_fields": [
+          "dim_region_info.city_name",
+          "dim_region_info.province_name",
+          "dim_region_info.region_name",
+          "dwd_trade_order.create_time",
+          "dwd_trade_order.order_status",
+          "dwd_trade_order.pay_amount"
+        ],
+        "required_rules": [
+          "valid_order_filter"
+        ],
+        "value_hints": [
+          {
+            "value": "华东",
+            "field": "dim_region_info.region_name",
+            "note": "华东 是大区名称，必须过滤 region_name = '华东'，不要写 province_name = '华东'。"
+          }
+        ],
+        "should_refuse": false,
+        "refusal_reason": null,
+        "refusal_sql": null
+      },
+      "errors": null
+    },
+    {
+      "id": "channel_gmv",
+      "question": "请统计各渠道GMV排名",
+      "passed": true,
+      "latency_sec": 3.969,
+      "sql": "SELECT \n  dim_channel_info.channel_name, \n  SUM(dwd_trade_order.pay_amount) AS gmv\nFROM \n  dwd_trade_order\nJOIN \n  dim_channel_info ON dwd_trade_order.channel_id = dim_channel_info.channel_id\nWHERE \n  dwd_trade_order.order_status IN (20, 30)\nGROUP BY \n  dim_channel_info.channel_name\nORDER BY \n  gmv DESC;",
+      "summary": "该问题属于类别对比分析。共返回 5 条记录。channel_name 为 APP 的 gmv 最高，数值为 5965442.459999993；channel_name 为 线下门店 的 gmv 最低，数值为 1586501.509999999。",
+      "keyword_score": 1.0,
+      "missing_keywords": [],
+      "forbidden_hits": [],
+      "execution_ok": true,
+      "audit_ok": true,
+      "refusal_ok": true,
+      "response_ok": true,
+      "missing_response_substrings": [],
+      "chart_ok": true,
+      "chart_type": "bar",
+      "attempt_count": 1,
+      "agent_plan": {
+        "intent": "ranking",
+        "linked_terms": [
+          "sales",
+          "channel"
+        ],
+        "linked_fields": [
+          "dim_channel_info.channel_name",
+          "dwd_trade_order.create_time",
+          "dwd_trade_order.order_status",
+          "dwd_trade_order.pay_amount"
+        ],
+        "required_rules": [
+          "valid_order_filter"
+        ],
+        "value_hints": [],
+        "should_refuse": false,
+        "refusal_reason": null,
+        "refusal_sql": null
+      },
+      "errors": null
+    },
+    {
+      "id": "off_sale_products",
+      "question": "请列出下架商品产生的退款金额",
+      "passed": true,
+      "latency_sec": 5.119,
+      "sql": "SELECT SUM(t1.pay_amount) AS refund_amount\nFROM dwd_trade_order t1\nJOIN dim_sku_info t2 ON t1.sku_id = t2.sku_id\nWHERE t1.order_status = 40 AND t2.is_on_sale = 0;",
+      "summary": "查询已成功执行，共返回 1 条记录。",
+      "keyword_score": 1.0,
+      "missing_keywords": [],
+      "forbidden_hits": [],
+      "execution_ok": true,
+      "audit_ok": true,
+      "refusal_ok": true,
+      "response_ok": true,
+      "missing_response_substrings": [],
+      "chart_ok": true,
+      "chart_type": "table",
+      "attempt_count": 1,
+      "agent_plan": {
+        "intent": "ad_hoc_query",
+        "linked_terms": [
+          "refund",
+          "sku"
+        ],
+        "linked_fields": [
+          "dim_sku_info.cat_name",
+          "dim_sku_info.is_on_sale",
+          "dim_sku_info.sku_id",
+          "dwd_trade_order.order_status",
+          "dwd_trade_order.pay_amount"
+        ],
+        "required_rules": [
+          "on_sale_sku_filter",
+          "refund_order_filter"
+        ],
+        "value_hints": [],
+        "should_refuse": false,
+        "refusal_reason": null,
+        "refusal_sql": null
+      },
+      "errors": null
+    },
+    {
+      "id": "profit_refusal",
+      "question": "请计算本月利润",
+      "passed": true,
+      "latency_sec": 0.065,
+      "sql": "SELECT '缺乏成本数据，无法计算利润' AS message;",
+      "summary": "缺乏成本数据，无法计算利润",
+      "keyword_score": 1.0,
+      "missing_keywords": [],
+      "forbidden_hits": [],
+      "execution_ok": true,
+      "audit_ok": true,
+      "refusal_ok": true,
+      "response_ok": true,
+      "missing_response_substrings": [],
+      "chart_ok": true,
+      "chart_type": "table",
+      "attempt_count": 1,
+      "agent_plan": {
+        "intent": "refusal",
+        "linked_terms": [],
+        "linked_fields": [],
+        "required_rules": [],
+        "value_hints": [],
+        "should_refuse": true,
+        "refusal_reason": "cost_data_missing",
+        "refusal_sql": "SELECT '缺乏成本数据，无法计算利润' AS message;"
+      },
+      "errors": null
+    },
+    {
+      "id": "supplier_refusal",
+      "question": "请按供应商统计GMV",
+      "passed": true,
+      "latency_sec": 0.064,
+      "sql": "SELECT '当前数据库缺乏相关维度数据，无法满足该查询' AS message;",
+      "summary": "当前数据库缺乏相关维度数据，无法满足该查询",
+      "keyword_score": 1.0,
+      "missing_keywords": [],
+      "forbidden_hits": [],
+      "execution_ok": true,
+      "audit_ok": true,
+      "refusal_ok": true,
+      "response_ok": true,
+      "missing_response_substrings": [],
+      "chart_ok": true,
+      "chart_type": "table",
+      "attempt_count": 1,
+      "agent_plan": {
+        "intent": "refusal",
+        "linked_terms": [
+          "sales"
+        ],
+        "linked_fields": [
+          "dwd_trade_order.create_time",
+          "dwd_trade_order.order_status",
+          "dwd_trade_order.pay_amount"
+        ],
+        "required_rules": [
+          "valid_order_filter"
+        ],
+        "value_hints": [],
+        "should_refuse": true,
+        "refusal_reason": "schema_missing_dimensions:supplier",
+        "refusal_sql": "SELECT '当前数据库缺乏相关维度数据，无法满足该查询' AS message;"
+      },
+      "errors": null
+    },
+    {
+      "id": "manufacturer_refusal",
+      "question": "请分析各厂家的销售趋势",
+      "passed": true,
+      "latency_sec": 0.063,
+      "sql": "SELECT '当前数据库缺乏相关维度数据，无法满足该查询' AS message;",
+      "summary": "当前数据库缺乏相关维度数据，无法满足该查询",
+      "keyword_score": 1.0,
+      "missing_keywords": [],
+      "forbidden_hits": [],
+      "execution_ok": true,
+      "audit_ok": true,
+      "refusal_ok": true,
+      "response_ok": true,
+      "missing_response_substrings": [],
+      "chart_ok": true,
+      "chart_type": "table",
+      "attempt_count": 1,
+      "agent_plan": {
+        "intent": "refusal",
+        "linked_terms": [
+          "sales"
+        ],
+        "linked_fields": [
+          "dwd_trade_order.create_time",
+          "dwd_trade_order.order_status",
+          "dwd_trade_order.pay_amount"
+        ],
+        "required_rules": [
+          "valid_order_filter"
+        ],
+        "value_hints": [],
+        "should_refuse": true,
+        "refusal_reason": "schema_missing_dimensions:supplier",
+        "refusal_sql": "SELECT '当前数据库缺乏相关维度数据，无法满足该查询' AS message;"
+      },
+      "errors": null
+    },
+    {
+      "id": "sku_top_gmv",
+      "question": "请找出GMV最高的十个商品",
+      "passed": true,
+      "latency_sec": 11.526,
+      "sql": "SELECT \n    t2.sku_id, \n    t2.spu_name, \n    SUM(t1.pay_amount) AS gmv\nFROM \n    dwd_trade_order t1\nJOIN \n    dim_sku_info t2 ON t1.sku_id = t2.sku_id\nWHERE \n    t1.order_status IN (20, 30)\n    AND t2.is_on_sale = 1\nGROUP BY \n    t1.sku_id, t2.spu_name\nORDER BY \n    gmv DESC\nLIMIT 10;",
+      "summary": "该问题属于类别对比分析。共返回 9 条记录。sku_id 为 2002 的 spu_name 最高，数值为 雅诗兰黛小棕瓶；sku_id 为 1002 的 spu_name 最低，数值为 MacBook Air。",
+      "keyword_score": 1.0,
+      "missing_keywords": [],
+      "forbidden_hits": [],
+      "execution_ok": true,
+      "audit_ok": true,
+      "refusal_ok": true,
+      "response_ok": true,
+      "missing_response_substrings": [],
+      "chart_ok": true,
+      "chart_type": "bar",
+      "attempt_count": 1,
+      "agent_plan": {
+        "intent": "ranking",
+        "linked_terms": [
+          "sales",
+          "sku"
+        ],
+        "linked_fields": [
+          "dim_sku_info.cat_name",
+          "dim_sku_info.is_on_sale",
+          "dim_sku_info.sku_id",
+          "dwd_trade_order.create_time",
+          "dwd_trade_order.order_status",
+          "dwd_trade_order.pay_amount"
+        ],
+        "required_rules": [
+          "on_sale_sku_filter",
+          "valid_order_filter"
+        ],
+        "value_hints": [],
+        "should_refuse": false,
+        "refusal_reason": null,
+        "refusal_sql": null
+      },
+      "errors": null
+    }
+  ]
+}

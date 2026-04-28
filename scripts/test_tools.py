@@ -6,11 +6,13 @@ print(get_schema_text())
 
 print("\n========== SQL RESULT ==========")
 sql = """
-SELECT p.category, SUM(o.sales_amount) AS total_sales
-FROM orders o
-JOIN products p ON o.product_id = p.product_id
-GROUP BY p.category
-ORDER BY total_sales DESC
+SELECT s.cat_name, SUM(o.pay_amount) AS total_gmv
+FROM dwd_trade_order o
+JOIN dim_sku_info s ON o.sku_id = s.sku_id
+WHERE o.order_status IN (20, 30)
+  AND s.is_on_sale = 1
+GROUP BY s.cat_name
+ORDER BY total_gmv DESC
 LIMIT 5
 """
 result = execute_sql(sql)

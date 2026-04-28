@@ -18,7 +18,7 @@ def _safe_to_dataframe(result: dict) -> pd.DataFrame:
 
 
 def _is_time_series(df: pd.DataFrame) -> bool:
-    time_cols = {"month", "date", "order_date"}
+    time_cols = {"month", "date", "order_date", "create_time", "月份", "日期", "下单月份", "注册月份"}
     return any(col in df.columns for col in time_cols)
 
 
@@ -99,6 +99,9 @@ def summarize_result(question: str, result: dict) -> str:
 
     if df.empty:
         return "本次查询未返回有效数据，因此无法完成进一步分析。"
+
+    if "message" in df.columns and len(df) >= 1:
+        return str(df.iloc[0]["message"])
 
     row_count = len(df)
     columns = df.columns.tolist()

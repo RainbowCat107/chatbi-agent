@@ -1,5 +1,7 @@
 import os
 import re
+import json
+from typing import Optional
 from openai import OpenAI
 from dotenv import load_dotenv
 
@@ -11,10 +13,10 @@ client = OpenAI(
     base_url="https://dashscope.aliyuncs.com/compatible-mode/v1"
 )
 
-# 选定我们刚才挑好的最强模型
-MODEL_NAME = "qwen-max"
+# 默认使用通义千问 Max，可通过环境变量切换。
+MODEL_NAME = os.getenv("MODEL_NAME", "qwen-max")
 
-def build_nl2sql_prompt(question: str, schema_text: str) -> str:
+def build_nl2sql_prompt(question: str, schema_text: str, agent_plan: Optional[dict] = None) -> str:
     """【带数据字典的提示词构建】"""
     
     data_dictionary = """
@@ -26,6 +28,8 @@ def build_nl2sql_prompt(question: str, schema_text: str) -> str:
 5. 利润：数据库中目前缺乏“成本”等相关数据，绝对无法计算利润。当遇到查询利润时，必须只输出：SELECT '缺乏成本数据，无法计算利润' AS message;
 6. 【拒答铁律】数据缺失拦截：如果用户询问的信息（如厂家、供应商、地址、省份等）在 Schema 中完全不存在，绝对不允许用其他字段（如商品名、日期等）强行凑数！必须直接输出：SELECT '当前数据库缺乏相关维度数据，无法满足该查询' AS message;
     """
+
+    plan_text = json.dumps(agent_plan or {}, ensure_ascii=False, indent=2)
     
     return f"""
 你是一个专业的数据分析 SQL 架构师。
@@ -41,6 +45,9 @@ def build_nl2sql_prompt(question: str, schema_text: str) -> str:
 数据库 Schema:
 {schema_text}
 
+Agent 规划与 Schema Linking 提示:
+{plan_text}
+
 {data_dictionary}
 
 用户问题:
@@ -49,11 +56,11 @@ def build_nl2sql_prompt(question: str, schema_text: str) -> str:
 请直接输出 SQL:
 """.strip()
 
-def generate_sql(question: str, schema_text: str, history: list = None) -> str:
+def generate_sql(question: str, schema_text: str, history: list = None, agent_plan: Optional[dict] = None) -> str:
     if history is None:
         history = []
         
-    prompt = build_nl2sql_prompt(question, schema_text)
+    prompt = build_nl2sql_prompt(question, schema_text, agent_plan)
     
     messages = [
         {"role": "system", "content": "你是一个极其专业的数据分析 SQL 架构师。"}
@@ -72,8 +79,17 @@ def generate_sql(question: str, schema_text: str, history: list = None) -> str:
     
     return response.choices[0].message.content
 
-def fix_sql(question: str, schema_text: str, bad_sql: str, error_message: str) -> str:
+def fix_sql(
+    question: str,
+    schema_text: str,
+    bad_sql: str,
+    error_message: str,
+    audit_report: Optional[dict] = None,
+    agent_plan: Optional[dict] = None,
+) -> str:
     """【真·自我纠错调用】如果 SQL 报错了，把报错信息甩给大模型让它重写"""
+    audit_text = json.dumps(audit_report or {}, ensure_ascii=False, indent=2)
+    plan_text = json.dumps(agent_plan or {}, ensure_ascii=False, indent=2)
     fix_prompt = f"""
 你之前生成的 SQL 执行报错了。请帮我修复它。
 用户问题: {question}
@@ -84,10 +100,22 @@ def fix_sql(question: str, schema_text: str, bad_sql: str, error_message: str) -
 数据库返回的报错信息:
 {error_message}
 
+SQL 审计报告:
+{audit_text}
+
+Agent 规划与 Schema Linking 提示:
+{plan_text}
+
 数据库 Schema:
 {schema_text}
 
-请分析错误原因，并输出修复后的正确 SQLite SQL。只输出 SQL，不要解释。
+请分析错误原因，并输出修复后的正确 SQLite SQL。必须继续遵守业务数据字典里的口径：
+1. 销售/GMV/销量类查询过滤 `order_status IN (20, 30)`。
+2. 退款/售后类查询过滤 `order_status = 40`。
+3. 用户表过滤 `is_deleted = 0`。
+4. 商品表过滤 `is_on_sale = 1`。
+5. 缺少字段时输出拒答 SQL，不要硬凑字段。
+只输出 SQL，不要解释。
 """
     response = client.chat.completions.create(
         model=MODEL_NAME,

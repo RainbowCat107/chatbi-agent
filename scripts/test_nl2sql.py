@@ -1,6 +1,6 @@
 from app.agents.nl2sql_agent import run_nl2sql
 
-question = "请帮我分析销量最高的前五个品类"
+question = "请按品类统计GMV最高的前五名"
 
 resp = run_nl2sql(question)
 
